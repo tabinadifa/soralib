@@ -8,7 +8,6 @@
         font-weight: 600;
         text-transform: uppercase;
     }
-    /* Konsisten dengan badge kategori */
     .badge-status-pending {
         background-color: #FFF3E0;
         color: #E65100;
@@ -31,6 +30,14 @@
     }
     .btn-outline-success-custom:hover {
         background-color: #2E7D32;
+        color: white;
+    }
+    .btn-outline-warning-custom {
+        border-color: #F57C00;
+        color: #F57C00;
+    }
+    .btn-outline-warning-custom:hover {
+        background-color: #F57C00;
         color: white;
     }
 </style>
@@ -101,7 +108,9 @@
                             <td>
                                 <div class="fw-semibold">{{ $item->peminjam->name }}</div>
                                 <div class="small text-muted">{{ $item->peminjam->email }}</div>
-                                <a href="{{ route('admin.peminjaman.show', $item->id) }}" class="small text-decoration-none">Detail →</a>
+                                <a href="{{ route('admin.peminjaman.show', $item->id) }}" class="btn btn-sm btn-outline-secondary mt-1" title="Detail" aria-label="Detail">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ $item->buku->judul_buku }}</div>
@@ -128,14 +137,23 @@
                                 @endphp
                                 <span class="badge {{ $badgeClass }} badge-status">{{ $statusText }}</span>
                             </td>
-                            <td>
-                                @if ($item->status !== 'returned')
-                                    <button type="button" class="btn btn-sm btn-outline-success-custom"
-                                        data-bs-toggle="modal" data-bs-target="#statusModal-{{ $item->id }}">
-                                        Ubah Status
-                                    </button>
+                            <td class="text-center">
+                                @if ($item->status === 'returned')
+                                    <span class="text-muted" title="Sudah dikembalikan">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </span>
+                                @elseif ($item->status === 'approve')
+                                    {{-- Tombol Kembalikan langsung ke halaman pengembalian --}}
+                                    <a href="{{ route('admin.pengembalian.create', ['peminjaman_id' => $item->id]) }}"
+                                       class="btn btn-sm btn-outline-warning-custom" title="Kembalikan" aria-label="Kembalikan">
+                                        <i class="bi bi-arrow-return-left"></i>
+                                    </a>
                                 @else
-                                    <span class="text-muted small">Tidak bisa diubah</span>
+                                    {{-- Tombol Ubah Status untuk pending / rejected --}}
+                                    <button type="button" class="btn btn-sm btn-outline-success-custom"
+                                        data-bs-toggle="modal" data-bs-target="#statusModal-{{ $item->id }}" title="Ubah Status" aria-label="Ubah Status">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
                                 @endif
                             </td>
                         </tr>
@@ -161,9 +179,9 @@
     </div>
 </div>
 
-{{-- Modal Ubah Status untuk setiap peminjaman (kecuali returned) --}}
+{{-- Modal Ubah Status untuk pending/rejected (tanpa returned & approve) --}}
 @foreach ($peminjaman as $item)
-    @continue($item->status === 'returned')
+    @continue($item->status === 'returned' || $item->status === 'approve')
 
     @php
         $isModalReopened = old('peminjaman_id') && (int) old('peminjaman_id') === $item->id;
@@ -198,7 +216,7 @@
                             <select id="statusSelect-{{ $item->id }}" name="status" class="form-select"
                                 data-reason-toggle="reasonField-{{ $item->id }}">
                                 @foreach ($allowedStatuses as $status)
-                                    @if ($status !== 'returned') {{-- tidak tampilkan returned --}}
+                                    @if ($status !== 'returned')
                                         <option value="{{ $status }}" @selected($selectedStatus === $status)>
                                             {{ $statusLabels[$status] ?? ucfirst($status) }}
                                         </option>
@@ -234,6 +252,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Toggle alasan penolakan pada modal ubah status
     const toggleReasonField = (select) => {
         const targetId = select.getAttribute('data-reason-toggle');
         if (!targetId) return;
@@ -252,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleReasonField(select);
     });
 
-    // Jika ada error validasi, buka modal kembali
+    // Jika ada error validasi, buka modal kembali (untuk ubah status)
     const failedModalId = @json(old('peminjaman_id'));
     if (failedModalId) {
         const modalEl = document.getElementById(`statusModal-${failedModalId}`);

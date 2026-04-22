@@ -151,6 +151,7 @@ class DashboardController extends Controller
             ->where('peminjam_id', $user->id)
             ->where(function ($q) {
                 $q->where('status', 'rejected')
+                                    ->orWhere('status', 'returned')
                   ->orWhereHas('pengembalian');
             })
             ->orderBy('created_at', 'desc')
@@ -162,7 +163,7 @@ class DashboardController extends Controller
 
         // Jumlah buku yang pernah dipinjam (seluruh peminjaman yang disetujui)
         $totalPernahDipinjam = Peminjaman::where('peminjam_id', $user->id)
-            ->where('status', 'approve')
+            ->whereIn('status', ['approve', 'returned'])
             ->sum('total_buku');
 
         // Apakah ada peminjaman yang terlambat
@@ -180,7 +181,7 @@ class DashboardController extends Controller
         }
 
         $monthlyLoans = Peminjaman::where('peminjam_id', $user->id)
-            ->where('status', 'approve')
+            ->whereIn('status', ['approve', 'returned'])
             ->select(
                 DB::raw('YEAR(tanggal_pinjam) as year'),
                 DB::raw('MONTH(tanggal_pinjam) as month'),

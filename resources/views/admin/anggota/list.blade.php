@@ -69,15 +69,21 @@
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-2">
                                         <a href="{{ route('admin.anggota.detail', $siswa->id) }}"
-                                            class="btn btn-sm btn-outline-secondary">Detail</a>
+                                            class="btn btn-sm btn-outline-secondary" title="Detail" aria-label="Detail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
                                         <a href="{{ route('admin.anggota.edit', $siswa->id) }}"
-                                            class="btn btn-sm btn-outline-primary">Edit</a>
+                                            class="btn btn-sm btn-outline-primary" title="Edit" aria-label="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
                                         <form action="{{ route('admin.anggota.destroy', $siswa->id) }}" method="POST"
                                             class="form-hapus" data-title="Yakin ingin menghapus?"
                                             data-text="Data anggota ini akan dihapus secara permanen.">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus" aria-label="Hapus">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </form>
                                     </div>
                                 </td>

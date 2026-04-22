@@ -83,14 +83,18 @@
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-2">
                                         <a href="{{ route('admin.administrator.edit', $admin->id) }}"
-                                            class="btn btn-sm btn-outline-primary">Edit</a>
+                                            class="btn btn-sm btn-outline-primary" title="Edit" aria-label="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
                                         @if(Auth::id() !== $admin->id)
                                             <form action="{{ route('admin.administrator.destroy', $admin->id) }}" method="POST"
                                                 class="form-hapus" data-title="Yakin ingin menghapus?"
                                                 data-text="Data administrator ini akan dihapus secara permanen.">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus" aria-label="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             </form>
                                         @endif
                                     </div>

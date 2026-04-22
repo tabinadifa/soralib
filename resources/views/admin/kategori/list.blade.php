@@ -74,8 +74,9 @@
                                     <div class="d-inline-flex gap-2">
                                         <button type="button" class="btn btn-sm btn-outline-primary btn-edit"
                                             data-bs-toggle="modal" data-bs-target="#modalEditKategori"
-                                            data-id="{{ $kategori->id }}" data-nama="{{ $kategori->nama_kategori }}">
-                                            Edit
+                                            data-id="{{ $kategori->id }}" data-nama="{{ $kategori->nama_kategori }}"
+                                            title="Edit" aria-label="Edit">
+                                            <i class="bi bi-pencil"></i>
                                         </button>
 
                                         <form action="{{ route('admin.kategori.destroy', $kategori->id) }}" method="POST"
@@ -84,8 +85,8 @@
                                             @csrf
                                             @method('DELETE')
 
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                Hapus
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus" aria-label="Hapus">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
                                     </div>

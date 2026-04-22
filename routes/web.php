@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Peminjaman\PeminjamanController as AdminPeminjama
 use App\Http\Controllers\Admin\Pengembalian\PengembalianController as AdminPengembalianController;
 use App\Http\Controllers\Siswa\Peminjaman\PeminjamanController as SiswaPeminjamanController;
 use App\Http\Controllers\FileManager\FileManagerController;
+use App\Http\Controllers\ProfileController;
 use Faker\Guesser\Name;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,12 @@ Route::get('/login', function () {
 
 Route::prefix('soralib')->middleware('auth')->group( function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+
+    Route::controller(ProfileController::class)->prefix('profile')->group(function () {
+        Route::get('/', 'index')->name('profile');
+        Route::put('/', 'update')->name('profile.update');
+        Route::put('/password', 'updatePassword')->name('profile.password');
+    });
 
     Route::controller(FileManagerController::class)->prefix('file-manager')->group(function () {
         Route::get('/', 'listImages')->name('filemanager.list');
@@ -93,7 +100,8 @@ Route::prefix('soralib')->middleware('auth')->group( function () {
             Route::get('{pengembalian}', 'show')->name('show');
             Route::get('{pengembalian}/edit', 'edit')->name('edit');
             Route::put('{pengembalian}', 'update')->name('update');
-            Route::get('/{pengembalian}/send-whatsapp', 'sendWhatsApp')->name('send-whatsapp');
+            // Route::get('/{pengembalian}/send-whatsapp', 'sendWhatsApp')->name('send-whatsapp');
+            Route::delete('{pengembalian}', 'destroy')->name('destroy');
         });
     });
 

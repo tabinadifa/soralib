@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -84,6 +85,41 @@ class PengembalianController extends Controller
                 ->with('error', 'Silakan login terlebih dahulu.');
         }
 
+        $peminjamanId = $request->query('peminjaman_id');
+
+        // Jika ada parameter peminjaman_id, langsung ambil data peminjaman tersebut
+        if ($peminjamanId) {
+            $peminjaman = Peminjaman::with([
+                'buku:id,judul_buku,penulis',
+                'peminjam:id,name,username,kelas,nisn,phone'
+            ])->find($peminjamanId);
+
+            if (!$peminjaman) {
+                return redirect()->route('admin.pengembalian.create')
+                    ->with('error', 'Data peminjaman tidak ditemukan.');
+            }
+
+            // Pastikan status peminjaman adalah 'approve' dan belum dikembalikan
+            if ($peminjaman->status !== 'approve') {
+                return redirect()->route('admin.pengembalian.create')
+                    ->with('error', 'Peminjaman ini tidak dapat dikembalikan (status bukan approve).');
+            }
+
+            // Cek apakah sudah ada pengembalian untuk peminjaman ini
+            $existingReturn = Pengembalian::where('peminjaman_id', $peminjamanId)->exists();
+            if ($existingReturn) {
+                return redirect()->route('admin.pengembalian.create')
+                    ->with('error', 'Peminjaman ini sudah memiliki catatan pengembalian.');
+            }
+
+            return view('admin.pengembalian.create', [
+                'peminjaman' => $peminjaman, // data spesifik
+                'files' => $this->getBuktiPembayaranFiles(),
+                'peminjamans' => null, // tidak perlu daftar semua
+            ]);
+        }
+
+        // Jika tidak ada parameter, tampilkan daftar peminjaman (seperti semula)
         $search = $request->get('search');
 
         $peminjamans = Peminjaman::with([
@@ -112,10 +148,8 @@ class PengembalianController extends Controller
 
         return view('admin.pengembalian.create', [
             'peminjamans' => $peminjamans,
-            'files' => FileManager::select('id', 'file_name', 'file_path', 'created_at')
-                ->where('file_path', 'like', '%bukti-pembayaran%')
-                ->orderByDesc('created_at')
-                ->get(),
+            'files' => $this->getBuktiPembayaranFiles(),
+            'peminjaman' => null,
         ]);
     }
 
@@ -186,7 +220,7 @@ class PengembalianController extends Controller
             // Kembalikan stok buku
             $buku = Buku::find($peminjaman->buku_id);
             if ($buku) {
-                $buku->increment('stok', $peminjaman->total_buku);
+                $buku->increment('jumlah_stok', $peminjaman->total_buku);
             }
 
             $peminjaman->update([
@@ -252,10 +286,7 @@ class PengembalianController extends Controller
         return view('admin.pengembalian.edit', [
             'pengembalian' => $pengembalian,
             'peminjamans' => $peminjamans,
-            'files' => FileManager::select('id', 'file_name', 'file_path', 'created_at')
-                ->where('file_path', 'like', '%bukti-pembayaran%')
-                ->orderByDesc('created_at')
-                ->get(),
+            'files' => $this->getBuktiPembayaranFiles(),
         ]);
     }
 
@@ -280,8 +311,15 @@ class PengembalianController extends Controller
             'catatan' => ['nullable', 'string'],
         ]);
 
+        // Kunci relasi peminjaman saat edit untuk mencegah salah ubah data.
+        if ((int) $validated['peminjaman_id'] !== (int) $pengembalian->peminjaman_id) {
+            throw ValidationException::withMessages([
+                'peminjaman_id' => 'Peminjaman tidak dapat diubah pada proses edit pengembalian.',
+            ]);
+        }
+
         $peminjaman = Peminjaman::select('id', 'tanggal_kembali')
-            ->find($validated['peminjaman_id']);
+            ->find($pengembalian->peminjaman_id);
 
         if (!$peminjaman) {
             throw ValidationException::withMessages([
@@ -298,7 +336,7 @@ class PengembalianController extends Controller
         $totalDenda = $dendaTelat + $dendaKondisi;
 
         $pengembalian->update([
-            'peminjaman_id' => $validated['peminjaman_id'],
+            'peminjaman_id' => $pengembalian->peminjaman_id,
             'tanggal_pengembalian' => $validated['tanggal_pengembalian'],
             'kondisi_buku' => $validated['kondisi_buku'],
             'status' => $validated['status'],
@@ -415,5 +453,31 @@ Berikut adalah rincian pengembalian buku Anda:
 Terima kasih telah menggunakan layanan perpustakaan.
 
 - *Admin*";
+    }
+
+    private function getBuktiPembayaranFiles()
+    {
+        $folder = storage_path('app/public/uploads/bukti-pembayaran');
+
+        if (File::exists($folder)) {
+            foreach (File::files($folder) as $storedFile) {
+                $relativePath = 'storage/uploads/bukti-pembayaran/' . $storedFile->getFilename();
+
+                FileManager::firstOrCreate(
+                    ['file_path' => $relativePath],
+                    [
+                        'file_name' => $storedFile->getFilename(),
+                        'mime_type' => File::mimeType($storedFile->getPathname()) ?: 'application/octet-stream',
+                        'size' => $storedFile->getSize(),
+                        'uploaded_by' => Auth::id(),
+                    ]
+                );
+            }
+        }
+
+        return FileManager::select('id', 'file_name', 'file_path', 'created_at')
+            ->where('file_path', 'like', '%/uploads/bukti-pembayaran/%')
+            ->orderByDesc('created_at')
+            ->get();
     }
 }

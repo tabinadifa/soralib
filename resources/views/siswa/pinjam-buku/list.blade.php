@@ -15,42 +15,78 @@
             box-shadow: 0 4px 14px rgba(23, 56, 35, 0.08);
         }
 
-        /* Seragam untuk semua cover buku */
-        .buku-card-img,
-        .buku-img-box img {
+        .buku-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .buku-card {
+            border: 1px solid #edf1ee;
+            border-radius: 1rem;
+            background: #fff;
+            padding: 1rem;
+            display: flex;
+            align-items: stretch;
+            gap: 1rem;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .buku-card:hover {
+            box-shadow: 0 8px 18px rgba(23, 56, 35, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .buku-card-media {
+            width: 120px;
+            flex: 0 0 120px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #edf1ee;
+        }
+
+        .buku-card-img {
             width: 100%;
-            aspect-ratio: 2 / 3;
-            /* Rasio 2:3 seperti cover buku */
+            height: 100%;
+            min-height: 170px;
             object-fit: cover;
             object-position: center;
             display: block;
             background-color: #f8f9fa;
         }
 
-        /* Placeholder seragam */
-        .buku-card-img-placeholder,
-        .buku-img-placeholder {
+        .buku-card-img-placeholder {
             width: 100%;
-            aspect-ratio: 2 / 3;
+            min-height: 170px;
             background: linear-gradient(145deg, #f0f2f5 0%, #e9ecef 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #adb5bd;
-            font-size: 3rem;
-        }
-
-        /* Hover efek sedikit zoom (opsional) */
-        .buku-card-img {
-            transition: transform 0.3s ease;
-        }
-
-        .buku-card:hover .buku-card-img {
-            transform: scale(1.02);
+            font-size: 2.2rem;
         }
 
         .buku-card-body {
-            padding: 1.25rem;
+            padding: 0.25rem 0;
+            display: flex;
+            flex: 1;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+
+        .buku-card-main {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .buku-card-action {
+            display: flex;
+            align-items: center;
+            min-width: 220px;
+        }
+
+        .buku-card-action .btn {
+            white-space: nowrap;
         }
 
         .badge-tersedia {
@@ -66,6 +102,26 @@
             color: #6c757d;
             margin-bottom: 0.5rem;
         }
+
+        @media (max-width: 767.98px) {
+            .buku-card {
+                flex-direction: column;
+            }
+
+            .buku-card-media {
+                width: 100%;
+                flex-basis: auto;
+            }
+
+            .buku-card-body {
+                flex-direction: column;
+            }
+
+            .buku-card-action {
+                min-width: 0;
+                width: 100%;
+            }
+        }
     </style>
 @endpush
 
@@ -73,7 +129,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
             <p class="text-uppercase text-muted mb-1 small">Peminjaman Buku</p>
-            <h1 class="page-title fw-bold mb-0">Pilih Buku Untuk Dipinjam</h1>
+            <h1 class="page-title fw-bold mb-0">Daftar Buku</h1>
         </div>
         <div class="text-end">
             <span class="text-muted small">Menampilkan {{ number_format($bukus->total()) }} buku tersedia</span>
@@ -111,15 +167,15 @@
                     <p class="mb-0">Tidak ada buku yang tersedia untuk dipinjam saat ini.</p>
                 </div>
             @else
-                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                <div class="buku-list">
                     @foreach ($bukus as $buku)
                         @php
                             $canBorrow = $buku->jumlah_stok > 0;
                             $gambar = $buku->gambar;
                             $gambarUrl = $gambar ? asset($gambar->file_path) : null;
                         @endphp
-                        <div class="col">
-                            <div class="buku-card d-flex flex-column">
+                        <div class="buku-card">
+                            <div class="buku-card-media">
                                 @if ($gambarUrl)
                                     <img src="{{ $gambarUrl }}" alt="{{ $buku->judul_buku }}" class="buku-card-img">
                                 @else
@@ -127,8 +183,10 @@
                                         <i class="bi bi-journal-bookmark-fill"></i>
                                     </div>
                                 @endif
-                                <div class="buku-card-body d-flex flex-column flex-grow-1">
-                                    <div class="mb-2">
+                            </div>
+                            <div class="buku-card-body">
+                                <div class="buku-card-main">
+                                    <div class="mb-2 pe-md-3">
                                         <h5 class="fw-semibold mb-1">{{ $buku->judul_buku }}</h5>
                                         <p class="text-muted small mb-0">
                                             {{ $buku->penulis ?? 'Penulis tidak diketahui' }}
@@ -147,23 +205,23 @@
                                     </div>
 
                                     @if ($buku->deskripsi)
-                                        <p class="text-muted small mb-3" style="max-height:3.75rem;overflow:hidden;">
+                                        <p class="text-muted small mb-0" style="max-height:3.75rem;overflow:hidden;">
                                             {{ Str::limit($buku->deskripsi, 80) }}
                                         </p>
                                     @endif
+                                </div>
 
-                                    <div class="mt-auto">
-                                        @if ($canBorrow)
-                                            <a href="{{ route('siswa.peminjaman.create', $buku) }}"
-                                                class="btn btn-success w-100">
-                                                Ajukan Pinjam ({{ $buku->jumlah_stok }} tersedia)
-                                            </a>
-                                        @else
-                                            <button class="btn btn-secondary w-100" disabled>
-                                                Stok Habis
-                                            </button>
-                                        @endif
-                                    </div>
+                                <div class="buku-card-action">
+                                    @if ($canBorrow)
+                                        <a href="{{ route('siswa.peminjaman.create', $buku) }}"
+                                            class="btn btn-success w-100">
+                                            Ajukan Pinjam ({{ $buku->jumlah_stok }} tersedia)
+                                        </a>
+                                    @else
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            Stok Habis
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>

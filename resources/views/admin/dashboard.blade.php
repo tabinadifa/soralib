@@ -432,7 +432,7 @@
             </div>
         </div>
 
-        <!-- Pengingat Pengembalian -->
+        <!-- Pengingat Pengembalian (DIPERBAIKI) -->
         <div class="col-md-6 col-lg-4">
             <div class="chart-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -451,11 +451,22 @@
                     </div>
                     <span class="reminder-tag tag-due">
                         @php
-                            $diff = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($loan->tanggal_kembali), false);
-                            if ($diff == 0) echo 'Hari Ini';
-                            elseif ($diff == 1) echo 'Besok';
-                            else echo $diff . ' hari';
+                            // Gunakan nilai sisa_hari dari controller (sudah dibulatkan)
+                            $sisa = $loan->sisa_hari ?? '';
+                            // Jika belum ada properti sisa_hari (fallback), hitung manual dengan pembulatan
+                            if (empty($sisa)) {
+                                $diff = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($loan->tanggal_kembali), false);
+                                if ($diff == 0) $sisa = 'Hari Ini';
+                                elseif ($diff == 1) $sisa = 'Besok';
+                                else $sisa = round($diff, 2) . ' hari';
+                            } else {
+                                // Ubah "0.00 hari" menjadi "Hari Ini"
+                                if (trim($sisa) == '0.00 hari' || trim($sisa) == '0 hari') $sisa = 'Hari Ini';
+                                // Ubah "1.00 hari" menjadi "Besok"
+                                elseif (trim($sisa) == '1.00 hari' || trim($sisa) == '1 hari') $sisa = 'Besok';
+                            }
                         @endphp
+                        {{ $sisa }}
                     </span>
                 </div>
                 @endforeach
@@ -468,9 +479,26 @@
                     <div class="reminder-dot dot-red mt-1"></div>
                     <div class="flex-grow-1">
                         <div class="reminder-book">{{ $loan->buku->judul_buku ?? 'Buku' }}</div>
-                        <div class="reminder-meta">{{ $loan->peminjam->name }} · Terlambat {{ \Carbon\Carbon::parse($loan->tanggal_kembali)->diffInDays(\Carbon\Carbon::now()) }} hari</div>
+                        <div class="reminder-meta">
+                            {{ $loan->peminjam->name }} · 
+                            @php
+                                $lateText = $loan->sisa_hari ?? '';
+                                if (empty($lateText)) {
+                                    $lateText = 'Terlambat ' . round(\Carbon\Carbon::parse($loan->tanggal_kembali)->diffInDays(\Carbon\Carbon::now()), 2) . ' hari';
+                                }
+                            @endphp
+                            {{ $lateText }}
+                        </div>
                     </div>
-                    <span class="reminder-tag tag-late">+{{ \Carbon\Carbon::parse($loan->tanggal_kembali)->diffInDays(\Carbon\Carbon::now()) }} hari</span>
+                    <span class="reminder-tag tag-late">
+                        @php
+                            if (preg_match('/[\d\.]+/', $lateText, $matches)) {
+                                echo '+' . $matches[0] . ' hari';
+                            } else {
+                                echo 'Terlambat';
+                            }
+                        @endphp
+                    </span>
                 </div>
                 @endforeach
                 @endif

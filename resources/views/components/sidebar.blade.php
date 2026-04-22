@@ -49,7 +49,7 @@
                 <span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>
                 <span>Peminjaman</span>
             </a>
-            <a class="nav-link" href="#" data-nav-link>
+            <a class="nav-link {{ $currentRoute === 'admin.pengembalian.list' ? 'active' : '' }}" href="{{ route('admin.pengembalian.list') }}" data-nav-link>
                 <span class="nav-icon"><i class="bi bi-arrow-return-left"></i></span>
                 <span>Pengembalian</span>
             </a>
@@ -72,7 +72,7 @@
 
     <p class="section-label px-2 mb-2">GENERAL</p>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link" href="#" data-nav-link>
+        <a class="nav-link {{ $currentRoute === 'profile' ? 'active' : '' }}" href="{{ route('profile') }}" data-nav-link>
             <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
             <span>Profil</span>
         </a>
