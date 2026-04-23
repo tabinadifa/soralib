@@ -114,6 +114,13 @@
                             @error('metode_pembayaran')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
+                        <div class="col-12" id="qrisContainer" style="display: none;">
+                            <div class="alert alert-info text-center p-3 mb-0">
+                                <img src="{{ asset('storage/uploads/qris.jpg') }}" alt="QRIS Code" style="max-width: 200px;" class="img-fluid rounded">
+                                <p class="mt-2 mb-0">Scan QRIS untuk melakukan pembayaran</p>
+                            </div>
+                        </div>
+
                         <div class="col-12">
                             <label for="bukti_pembayaran" class="form-label">Upload Bukti Pembayaran</label>
                             <input type="file" name="bukti_pembayaran" id="bukti_pembayaran" class="form-control @error('bukti_pembayaran') is-invalid @enderror" accept="image/png,image/jpeg,image/webp">
@@ -152,3 +159,22 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const metodePembayaran = document.getElementById('metode_pembayaran');
+    const qrisContainer = document.getElementById('qrisContainer');
+
+    const toggleQris = () => {
+        if (!metodePembayaran || !qrisContainer) return;
+        qrisContainer.style.display = metodePembayaran.value === 'QRIS' ? 'block' : 'none';
+    };
+
+    toggleQris();
+    if (metodePembayaran) {
+        metodePembayaran.addEventListener('change', toggleQris);
+    }
+});
+</script>
+@endpush
