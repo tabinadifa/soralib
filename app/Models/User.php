@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -28,6 +29,7 @@ class User extends Authenticatable
         'phone',
         'address',
         'last_active_at',
+        'profile_id',
     ];
 
     /**
@@ -99,5 +101,21 @@ class User extends Authenticatable
     public function isOnline()
     {
         return $this->last_active_at && $this->last_active_at->diffInMinutes(now()) <= 5;
+    }
+
+    /**
+     * Relasi ke file foto profil.
+     */
+    public function profilePhoto(): BelongsTo
+    {
+        return $this->belongsTo(FileManager::class, 'profile_id');
+    }
+
+    /**
+     * URL foto profil untuk ditampilkan di view.
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return $this->profilePhoto?->file_path ? asset($this->profilePhoto->file_path) : null;
     }
 }

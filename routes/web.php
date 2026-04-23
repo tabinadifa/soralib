@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Buku\BukuController as AdminBukuController;
 use App\Http\Controllers\Admin\Peminjaman\PeminjamanController as AdminPeminjamanController;
 use App\Http\Controllers\Admin\Pengembalian\PengembalianController as AdminPengembalianController;
 use App\Http\Controllers\Siswa\Peminjaman\PeminjamanController as SiswaPeminjamanController;
+use App\Http\Controllers\Siswa\Pengembalian\PengembalianController as SiswaPengembalianController;
 use App\Http\Controllers\FileManager\FileManagerController;
 use App\Http\Controllers\ProfileController;
 use Faker\Guesser\Name;
@@ -108,8 +109,15 @@ Route::prefix('soralib')->middleware('auth')->group( function () {
     Route::prefix('siswa')->middleware('role:siswa')->name('siswa.')->group( function () {
         Route::controller(SiswaPeminjamanController::class)->prefix('pinjam-buku')->name('peminjaman.')->group( function () {
             Route::get('/', 'listBuku')->name('list');
+            Route::get('riwayat', 'riwayat')->name('riwayat');
             Route::get('{buku}/pinjam', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+        });
+
+        Route::controller(SiswaPengembalianController::class)->prefix('riwayat-pengembalian')->name('pengembalian.')->group(function () {
+            Route::get('/', 'index')->name('list');
+            Route::get('{pengembalian}', 'show')->name('show');
+            Route::put('{pengembalian}/pembayaran', 'updatePembayaran')->name('update-pembayaran');
         });
     });
 });

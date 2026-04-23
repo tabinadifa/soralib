@@ -42,6 +42,13 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Status Pembayaran</option>
+                        <option value="lunas" @selected(request('status') === 'lunas')>Lunas</option>
+                        <option value="belum_lunas" @selected(request('status') === 'belum_lunas')>Belum Lunas</option>
+                    </select>
+                </div>
                 <div class="col-md-4 ms-auto">
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control"
                         placeholder="Cari nama peminjam atau judul buku..."

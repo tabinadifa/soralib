@@ -14,9 +14,14 @@ use Illuminate\Validation\Rule;
 class PeminjamanController extends Controller
 {
     /**
-     * Daftar status yang diperbolehkan untuk filter.
+     * Daftar status yang diperbolehkan untuk update status.
      */
     private array $allowedStatuses = ['rejected', 'pending', 'approve'];
+
+    /**
+     * Daftar status yang diperbolehkan untuk filter list.
+     */
+    private array $allowedFilterStatuses = ['rejected', 'pending', 'approve', 'returned'];
 
     /**
      * Menampilkan daftar peminjaman buku (dengan filter status, search, pagination).
@@ -43,7 +48,7 @@ class PeminjamanController extends Controller
         );
 
         // Filter berdasarkan status
-        if ($request->filled('status') && in_array($request->status, $this->allowedStatuses, true)) {
+        if ($request->filled('status') && in_array($request->status, $this->allowedFilterStatuses, true)) {
             $query->where('status', $request->status);
         }
 
@@ -77,6 +82,7 @@ class PeminjamanController extends Controller
         return view('admin.peminjaman.list', [
             'peminjaman' => $peminjaman,
             'allowedStatuses' => $this->allowedStatuses,
+            'allowedFilterStatuses' => $this->allowedFilterStatuses,
         ]);
     }
 
@@ -140,11 +146,18 @@ class PeminjamanController extends Controller
         }
 
         $previousStatus = $peminjaman->status;
+        $newStatus = $validated['status'];
+
+        // Aturan stok:
+        // 1) approve -> pending/rejected: stok dikembalikan.
+        // 2) pending/rejected -> approve: stok dikurangi.
+        $shouldIncreaseStock = $previousStatus === 'approve' && in_array($newStatus, ['pending', 'rejected'], true);
+        $shouldDecreaseStock = in_array($previousStatus, ['pending', 'rejected'], true) && $newStatus === 'approve';
 
         try {
-            DB::transaction(function () use ($peminjaman, $validated, $previousStatus) {
-                // Jika sebelumnya approve dan sekarang bukan approve -> kembalikan stok
-                if ($previousStatus === 'approve' && $validated['status'] !== 'approve') {
+            DB::transaction(function () use ($peminjaman, $validated, $shouldIncreaseStock, $shouldDecreaseStock) {
+                // Jika sebelumnya approve dan sekarang pending/rejected -> kembalikan stok.
+                if ($shouldIncreaseStock) {
                     $buku = Buku::find($peminjaman->buku_id);
                     if ($buku) {
                         $buku->increment('jumlah_stok', $peminjaman->total_buku);
@@ -157,8 +170,8 @@ class PeminjamanController extends Controller
                     'alasan_ditolak' => $validated['status'] === 'rejected' ? ($validated['alasan_ditolak'] ?? null) : null,
                 ]);
 
-                // Jika menjadi approve dan sebelumnya bukan approve -> kurangi stok
-                if ($validated['status'] === 'approve' && $previousStatus !== 'approve') {
+                // Jika pending/rejected menjadi approve -> kurangi stok.
+                if ($shouldDecreaseStock) {
                     $buku = Buku::find($peminjaman->buku_id);
                     if ($buku) {
                         $buku->decrement('jumlah_stok', $peminjaman->total_buku);

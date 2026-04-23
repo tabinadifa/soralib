@@ -149,7 +149,20 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-6">
+
+                <div class="col-md-4">
+                    <label for="kategori_id" class="form-label text-uppercase text-muted small">Kategori</label>
+                    <select id="kategori_id" name="kategori_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Kategori</option>
+                        @foreach ($kategoriBukus as $kategori)
+                            <option value="{{ $kategori->id }}" @selected((string) request('kategori_id') === (string) $kategori->id)>
+                                {{ $kategori->nama_kategori }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-4">
                     <label for="search" class="form-label text-uppercase text-muted small">Cari Buku</label>
                     <input type="text" id="search" name="search" class="form-control"
                         placeholder="Masukkan judul, penulis, atau ISBN" value="{{ request('search') }}"
@@ -215,7 +228,7 @@
                                     @if ($canBorrow)
                                         <a href="{{ route('siswa.peminjaman.create', $buku) }}"
                                             class="btn btn-success w-100">
-                                            Ajukan Pinjam ({{ $buku->jumlah_stok }} tersedia)
+                                            Ajukan Pinjam 
                                         </a>
                                     @else
                                         <button class="btn btn-secondary w-100" disabled>

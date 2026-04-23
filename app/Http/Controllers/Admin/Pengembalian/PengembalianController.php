@@ -58,6 +58,14 @@ class PengembalianController extends Controller
             });
         }
 
+        // Filter status pembayaran
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if (in_array($status, ['lunas', 'belum_lunas'], true)) {
+                $query->where('status', $status);
+            }
+        }
+
         // Pagination
         $perPage = (int) $request->get('per_page', 10);
         $allowedSizes = [5, 10, 25, 50];
@@ -168,7 +176,7 @@ class PengembalianController extends Controller
             'tanggal_pengembalian' => ['required', 'date'],
             'kondisi_buku' => ['required', 'in:baik,rusak_ringan,rusak_berat,hilang'],
             'denda_kondisi' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', 'in:pending,lunas,belum_lunas'],
+            'status' => ['required', 'in:lunas,belum_lunas'],
             'metode_pembayaran' => ['nullable', 'string', 'max:50'],
             'file_bukti_pembayaran_id' => ['nullable', 'exists:file_managers,id'],
             'catatan' => ['nullable', 'string'],
@@ -205,21 +213,22 @@ class PengembalianController extends Controller
             );
             $dendaKondisi = (float) ($validated['denda_kondisi'] ?? 0);
             $totalDenda = $dendaTelat + $dendaKondisi;
+            $statusPembayaran = $totalDenda > 0 ? $validated['status'] : 'lunas';
 
             Pengembalian::create([
                 'peminjaman_id' => $validated['peminjaman_id'],
                 'tanggal_pengembalian' => $validated['tanggal_pengembalian'],
                 'kondisi_buku' => $validated['kondisi_buku'],
-                'status' => $validated['status'],
+                'status' => $statusPembayaran,
                 'denda' => $totalDenda,
                 'metode_pembayaran' => $validated['metode_pembayaran'] ?? null,
                 'file_bukti_pembayaran_id' => $validated['file_bukti_pembayaran_id'] ?? null,
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
-            // Kembalikan stok buku
+            // Kembalikan stok buku kecuali jika kondisi buku hilang.
             $buku = Buku::find($peminjaman->buku_id);
-            if ($buku) {
+            if ($buku && $validated['kondisi_buku'] !== 'hilang') {
                 $buku->increment('jumlah_stok', $peminjaman->total_buku);
             }
 
@@ -305,7 +314,7 @@ class PengembalianController extends Controller
             'tanggal_pengembalian' => ['required', 'date'],
             'kondisi_buku' => ['required', 'in:baik,rusak_ringan,rusak_berat,hilang'],
             'denda_kondisi' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', 'in:pending,lunas,belum_lunas'],
+            'status' => ['required', 'in:lunas,belum_lunas'],
             'metode_pembayaran' => ['nullable', 'string', 'max:50'],
             'file_bukti_pembayaran_id' => ['nullable', 'exists:file_managers,id'],
             'catatan' => ['nullable', 'string'],
@@ -334,12 +343,13 @@ class PengembalianController extends Controller
         );
         $dendaKondisi = (float) ($validated['denda_kondisi'] ?? 0);
         $totalDenda = $dendaTelat + $dendaKondisi;
+        $statusPembayaran = $totalDenda > 0 ? $validated['status'] : 'lunas';
 
         $pengembalian->update([
             'peminjaman_id' => $pengembalian->peminjaman_id,
             'tanggal_pengembalian' => $validated['tanggal_pengembalian'],
             'kondisi_buku' => $validated['kondisi_buku'],
-            'status' => $validated['status'],
+            'status' => $statusPembayaran,
             'denda' => $totalDenda,
             'metode_pembayaran' => $validated['metode_pembayaran'] ?? null,
             'file_bukti_pembayaran_id' => $validated['file_bukti_pembayaran_id'] ?? null,

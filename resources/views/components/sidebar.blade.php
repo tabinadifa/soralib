@@ -59,11 +59,11 @@
                 <span class="nav-icon"><i class="bi bi-plus-circle"></i></span>
                 <span>Pinjam Buku</span>
             </a>
-            <a class="nav-link" href="#" data-nav-link>
+            <a class="nav-link {{ $currentRoute === 'siswa.peminjaman.riwayat' ? 'active' : '' }}" href="{{ route('siswa.peminjaman.riwayat') }}" data-nav-link>
                 <span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>
                 <span>Riwayat Peminjaman</span>
             </a>
-            <a class="nav-link" href="#" data-nav-link>
+            <a class="nav-link {{ str_starts_with((string) $currentRoute, 'siswa.pengembalian.') ? 'active' : '' }}" href="{{ route('siswa.pengembalian.list') }}" data-nav-link>
                 <span class="nav-icon"><i class="bi bi-arrow-return-left"></i></span>
                 <span>Riwayat Pengembalian</span>
             </a>

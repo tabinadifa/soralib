@@ -60,6 +60,16 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col-md-3">
+                <select name="kategori_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semua Kategori</option>
+                    @foreach ($kategoriBukus as $kategori)
+                        <option value="{{ $kategori->id }}" @selected((string) request('kategori_id') === (string) $kategori->id)>
+                            {{ $kategori->nama_kategori }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-4 ms-auto">
                 <input type="text" name="search" value="{{ request('search') }}"
                     class="form-control" placeholder="Cari judul, penulis, atau ISBN..."

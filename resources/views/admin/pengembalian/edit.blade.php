@@ -120,7 +120,6 @@
 						<label for="status" class="form-label">Status Pembayaran Denda</label>
 						<select name="status" id="status" class="form-select" required>
 							<option value="">Pilih status</option>
-							<option value="pending" {{ old('status', $pengembalian->status) == 'pending' ? 'selected' : '' }}>Pending</option>
 							<option value="lunas" {{ old('status', $pengembalian->status) == 'lunas' ? 'selected' : '' }}>Lunas</option>
 							<option value="belum_lunas" {{ old('status', $pengembalian->status) == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
 						</select>

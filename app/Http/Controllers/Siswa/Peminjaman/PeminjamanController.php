@@ -35,6 +35,10 @@ class PeminjamanController extends Controller
             });
         }
 
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', (int) $request->kategori_id);
+        }
+
         $perPage = (int) $request->get('per_page', 10);
         $allowedSizes = [5, 10, 25, 50];
         if (!in_array($perPage, $allowedSizes, true)) {
@@ -46,7 +50,9 @@ class PeminjamanController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $kategoriBukus = KategoriBuku::orderBy('nama_kategori')->get();
+        $kategoriBukus = KategoriBuku::select('id', 'nama_kategori')
+            ->orderBy('nama_kategori')
+            ->get();
 
         return view('siswa.pinjam-buku.list', compact('bukus', 'kategoriBukus'));
     }
@@ -121,29 +127,29 @@ class PeminjamanController extends Controller
     /**
      * (Opsional) Menampilkan riwayat peminjaman milik peminjam yang sedang login
      */
-    // public function riwayat(Request $request)
-    // {
-    //     if (!Auth::check()) {
-    //         return redirect()->route('auth.login')
-    //             ->with('error', 'Silakan login terlebih dahulu.');
-    //     }
+    public function riwayat(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('auth.login')
+                ->with('error', 'Silakan login terlebih dahulu.');
+        }
 
-    //     $query = Peminjaman::with('buku')
-    //         ->where('peminjam_id', Auth::id())
-    //         ->select('id', 'buku_id', 'total_buku', 'tanggal_pinjam', 'tanggal_kembali', 'status', 'alasan_ditolak', 'created_at');
+        $query = Peminjaman::with('buku')
+            ->where('peminjam_id', Auth::id())
+            ->select('id', 'buku_id', 'total_buku', 'tanggal_pinjam', 'tanggal_kembali', 'status', 'alasan_ditolak', 'created_at');
 
-    //     if ($request->filled('status')) {
-    //         $query->where('status', $request->status);
-    //     }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-    //     $perPage = (int) $request->get('per_page', 10);
-    //     $allowedSizes = [5, 10, 25, 50];
-    //     if (!in_array($perPage, $allowedSizes, true)) {
-    //         $perPage = 10;
-    //     }
+        $perPage = (int) $request->get('per_page', 10);
+        $allowedSizes = [5, 10, 25, 50];
+        if (!in_array($perPage, $allowedSizes, true)) {
+            $perPage = 10;
+        }
 
-    //     $peminjaman = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        $peminjaman = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
-    //     return view('siswa.pinjam-buku.riwayat', compact('peminjaman'));
-    // }
+        return view('siswa.riwayat-peminjaman.list', compact('peminjaman'));
+    }
 }

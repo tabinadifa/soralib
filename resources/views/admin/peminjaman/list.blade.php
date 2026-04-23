@@ -80,6 +80,15 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semua Status</option>
+                    <option value="pending" @selected(request('status') === 'pending')>Menunggu Persetujuan</option>
+                    <option value="approve" @selected(request('status') === 'approve')>Disetujui</option>
+                    <option value="rejected" @selected(request('status') === 'rejected')>Ditolak</option>
+                    <option value="returned" @selected(request('status') === 'returned')>Dikembalikan</option>
+                </select>
+            </div>
             <div class="col-md-4 ms-auto">
                 <input type="text" name="search" value="{{ request('search') }}"
                     class="form-control" placeholder="Cari nama peminjam, judul buku, atau penulis..."
@@ -143,11 +152,19 @@
                                         <i class="bi bi-check2-circle"></i>
                                     </span>
                                 @elseif ($item->status === 'approve')
-                                    {{-- Tombol Kembalikan langsung ke halaman pengembalian --}}
-                                    <a href="{{ route('admin.pengembalian.create', ['peminjaman_id' => $item->id]) }}"
-                                       class="btn btn-sm btn-outline-warning-custom" title="Kembalikan" aria-label="Kembalikan">
-                                        <i class="bi bi-arrow-return-left"></i>
-                                    </a>
+                                    <div class="d-inline-flex gap-2">
+                                        {{-- Tombol Kembalikan langsung ke halaman pengembalian --}}
+                                        <a href="{{ route('admin.pengembalian.create', ['peminjaman_id' => $item->id]) }}"
+                                           class="btn btn-sm btn-outline-warning-custom" title="Kembalikan" aria-label="Kembalikan">
+                                            <i class="bi bi-arrow-return-left"></i>
+                                        </a>
+
+                                        {{-- Tetap tampilkan tombol ubah status meskipun sudah approve --}}
+                                        <button type="button" class="btn btn-sm btn-outline-success-custom"
+                                            data-bs-toggle="modal" data-bs-target="#statusModal-{{ $item->id }}" title="Ubah Status" aria-label="Ubah Status">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
                                 @else
                                     {{-- Tombol Ubah Status untuk pending / rejected --}}
                                     <button type="button" class="btn btn-sm btn-outline-success-custom"
@@ -179,9 +196,9 @@
     </div>
 </div>
 
-{{-- Modal Ubah Status untuk pending/rejected (tanpa returned & approve) --}}
+{{-- Modal Ubah Status untuk semua status selain returned --}}
 @foreach ($peminjaman as $item)
-    @continue($item->status === 'returned' || $item->status === 'approve')
+    @continue($item->status === 'returned')
 
     @php
         $isModalReopened = old('peminjaman_id') && (int) old('peminjaman_id') === $item->id;

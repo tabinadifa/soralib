@@ -1,5 +1,9 @@
 @php
+	$user = auth()->user();
 	$userName = optional(auth()->user())->name ?? session('user_name') ?? 'Pengguna';
+	$userEmail = optional($user)->email ?? '';
+	$userPhoto = optional($user)->profile_photo_url;
+	$userInitial = strtoupper(substr($userName, 0, 1));
 @endphp
 
 <header class="app-header d-flex align-items-center justify-content-between gap-3 px-4">
@@ -10,20 +14,24 @@
 	<div class="ms-auto d-flex align-items-center gap-3">
 		<div class="dropdown">
 			<button class="user-pill dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-				<div class="user-avatar">
-					{{ strtoupper(substr($userName, 0, 1)) }}
-				</div>
+				@if ($userPhoto)
+					<img src="{{ $userPhoto }}" alt="Foto profil {{ $userName }}" class="user-avatar-image">
+				@else
+					<div class="user-avatar">
+						{{ $userInitial }}
+					</div>
+				@endif
 				<span class="user-name d-none d-sm-inline">{{ $userName }}</span>
 				<i class="bi bi-chevron-down chevron-icon"></i>
 			</button>
 			<ul class="dropdown-menu dropdown-menu-end user-dropdown shadow-sm border-0 mt-2">
 				<li class="dropdown-header-info px-3 py-2">
 					<p class="mb-0 fw-semibold text-dark" style="font-size: 0.875rem;">{{ $userName }}</p>
-					<p class="mb-0 text-muted" style="font-size: 0.75rem;">{{ auth()->user()->email ?? '' }}</p>
+					<p class="mb-0 text-muted" style="font-size: 0.75rem;">{{ $userEmail }}</p>
 				</li>
 				<li><hr class="dropdown-divider my-1"></li>
 				<li>
-					<a class="dropdown-item d-flex align-items-center gap-2" href="#">
+					<a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('profile') }}">
 						<i class="bi bi-person text-muted"></i>
 						<span>Profile</span>
 					</a>
@@ -103,6 +111,14 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.user-avatar-image {
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		object-fit: cover;
 		flex-shrink: 0;
 	}
 

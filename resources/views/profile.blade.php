@@ -24,9 +24,13 @@
 		<div class="col-lg-4 mb-4">
 			<div class="card shadow-sm border-0 rounded-4">
 				<div class="card-body text-center p-4">
-					<div class="avatar-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2.5rem; font-weight: 500;">
-						{{ strtoupper(substr($user->name, 0, 1)) }}
-					</div>
+					@if ($user->profile_photo_url)
+						<img src="{{ $user->profile_photo_url }}" alt="Foto profil {{ $user->name }}" class="avatar-image mx-auto mb-3">
+					@else
+						<div class="avatar-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2.5rem; font-weight: 500;">
+							{{ strtoupper(substr($user->name, 0, 1)) }}
+						</div>
+					@endif
 					<h5 class="fw-bold mb-1">{{ $user->name }}</h5>
 					<p class="text-muted small">@ {{ $user->username }}</p>
 					<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill">{{ ucfirst($user->role) }}</span>
@@ -55,9 +59,26 @@
 					<div class="card shadow-sm border-0 rounded-4">
 						<div class="card-body p-4">
 							<h5 class="card-title mb-4">Edit Informasi Profil</h5>
-							<form method="POST" action="{{ route('profile.update') }}" id="profileForm">
+							<form method="POST" action="{{ route('profile.update') }}" id="profileForm" enctype="multipart/form-data">
 								@csrf
 								@method('PUT')
+
+								<div class="mb-3">
+									<label class="form-label">Foto Profil</label>
+									<div class="d-flex align-items-center gap-3">
+										<img
+											id="profilePhotoPreview"
+											src="{{ $user->profile_photo_url ?? 'https://placehold.co/80x80/e2e8f0/64748b?text=' . urlencode(strtoupper(substr($user->name, 0, 1))) }}"
+											alt="Preview foto profil"
+											class="profile-photo-preview"
+										>
+										<div class="w-100">
+											<input type="file" name="profile_photo" id="profile_photo" class="form-control @error('profile_photo') is-invalid @enderror" accept="image/png,image/jpeg,image/webp">
+											<small class="text-muted">Format JPG, JPEG, PNG, WEBP. Maksimal 2MB.</small>
+										</div>
+									</div>
+									@error('profile_photo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+								</div>
 
 								<div class="mb-3">
 									<label class="form-label">Nama Lengkap</label>
@@ -138,6 +159,19 @@
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 	}
+	.avatar-image,
+	.profile-photo-preview {
+		width: 100px;
+		height: 100px;
+		border-radius: 50%;
+		object-fit: cover;
+		box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+		border: 3px solid #fff;
+	}
+	.profile-photo-preview {
+		width: 80px;
+		height: 80px;
+	}
 	.nav-tabs .nav-link {
 		color: #4b5563;
 		font-weight: 500;
@@ -163,6 +197,21 @@
 		if (alert) {
 			setTimeout(() => alert.remove(), 3000);
 		}
+
+			const profilePhotoInput = document.getElementById('profile_photo');
+			const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+			if (profilePhotoInput && profilePhotoPreview) {
+				profilePhotoInput.addEventListener('change', function(e) {
+					const [file] = e.target.files;
+					if (!file) return;
+
+					const reader = new FileReader();
+					reader.onload = function(event) {
+						profilePhotoPreview.src = event.target.result;
+					};
+					reader.readAsDataURL(file);
+				});
+			}
 
 		const passwordForm = document.getElementById('passwordForm');
 		if (passwordForm) {

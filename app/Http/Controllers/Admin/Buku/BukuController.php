@@ -37,6 +37,11 @@ class BukuController extends Controller
             });
         }
 
+        // Filter kategori
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', (int) $request->kategori_id);
+        }
+
         $perPage = (int) $request->get('per_page', 10);
         $allowedSizes = [5, 10, 25, 50];
         if (!in_array($perPage, $allowedSizes, true)) {
