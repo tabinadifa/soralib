@@ -369,7 +369,7 @@
 <div class="dashboard-wrapper">
     <div class="page-header">
         <h2>Dashboard Perpustakaan</h2>
-        <p>Selamat datang kembali — ringkasan aktivitas hari ini, {{ now()->translatedFormat('l, d F Y') }}</p>
+        <p>Selamat datang kembali - ringkasan aktivitas hari ini, {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y') }}</p>
     </div>
 
     <!-- Metric Cards -->
