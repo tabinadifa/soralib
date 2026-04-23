@@ -95,7 +95,6 @@ class BukuController extends Controller
                 'gambar_buku_id' => ['nullable', 'exists:file_managers,id'],
             ]);
 
-            // Format judul buku: huruf pertama setiap kata kapital
             $validated['judul_buku'] = ucwords(strtolower($validated['judul_buku']));
 
             Buku::create($validated);
