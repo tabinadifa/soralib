@@ -44,6 +44,10 @@
     @php
         $today = now()->format('Y-m-d');
         $tomorrow = now()->addDay()->format('Y-m-d');
+        $selectedTanggalPinjam = old('tanggal_pinjam', $today);
+        $selectedTanggalKembali = old('tanggal_kembali', $tomorrow);
+        $minTanggalKembali = \Carbon\Carbon::parse($selectedTanggalPinjam)->addDay()->format('Y-m-d');
+        $maxTanggalKembali = \Carbon\Carbon::parse($selectedTanggalPinjam)->addDays(7)->format('Y-m-d');
         $gambar = $buku->gambar;
         $gambarUrl = $gambar ? asset($gambar->file_path) : null;
         $stokTersedia = $buku->jumlah_stok;
@@ -112,7 +116,7 @@
                             <th class="text-muted">Stok Tersedia</th>
                             <td>
                                 <span class="badge text-bg-{{ $stokTersedia > 0 ? 'success' : 'danger' }}">
-                                    {{ number_format($stokTersedia) }} eksemplar
+                                    {{ number_format($stokTersedia) }}
                                 </span>
                             </td>
                         </tr>
@@ -144,13 +148,15 @@
                         <div class="col-md-6">
                             <label for="tanggal_pinjam" class="form-label">Tanggal Pinjam</label>
                             <input type="date" id="tanggal_pinjam" name="tanggal_pinjam" class="form-control"
-                                min="{{ $today }}" value="{{ old('tanggal_pinjam', $today) }}" required>
+                                min="{{ $today }}" value="{{ $selectedTanggalPinjam }}" required>
                         </div>
 
                         <div class="col-md-6">
                             <label for="tanggal_kembali" class="form-label">Tanggal Kembali</label>
                             <input type="date" id="tanggal_kembali" name="tanggal_kembali" class="form-control"
-                                min="{{ $tomorrow }}" value="{{ old('tanggal_kembali', $tomorrow) }}" required>
+                                min="{{ $minTanggalKembali }}" max="{{ $maxTanggalKembali }}"
+                                value="{{ $selectedTanggalKembali }}" required>
+                            <small class="text-muted">Maksimal 7 hari peminjaman.</small>
                         </div>
 
                         <div class="col-12">
@@ -171,3 +177,54 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tanggalPinjamInput = document.getElementById('tanggal_pinjam');
+            const tanggalKembaliInput = document.getElementById('tanggal_kembali');
+
+            if (!tanggalPinjamInput || !tanggalKembaliInput) {
+                return;
+            }
+
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const updateTanggalKembaliRange = () => {
+                if (!tanggalPinjamInput.value) {
+                    return;
+                }
+
+                const tanggalPinjam = new Date(`${tanggalPinjamInput.value}T00:00:00`);
+                const minTanggalKembali = new Date(tanggalPinjam);
+                minTanggalKembali.setDate(minTanggalKembali.getDate() + 1);
+
+                const maxTanggalKembali = new Date(tanggalPinjam);
+                maxTanggalKembali.setDate(maxTanggalKembali.getDate() + 7);
+
+                const minValue = formatDate(minTanggalKembali);
+                const maxValue = formatDate(maxTanggalKembali);
+
+                tanggalKembaliInput.min = minValue;
+                tanggalKembaliInput.max = maxValue;
+
+                if (!tanggalKembaliInput.value || tanggalKembaliInput.value < minValue) {
+                    tanggalKembaliInput.value = minValue;
+                    return;
+                }
+
+                if (tanggalKembaliInput.value > maxValue) {
+                    tanggalKembaliInput.value = maxValue;
+                }
+            };
+
+            tanggalPinjamInput.addEventListener('change', updateTanggalKembaliRange);
+            updateTanggalKembaliRange();
+        });
+    </script>
+@endpush

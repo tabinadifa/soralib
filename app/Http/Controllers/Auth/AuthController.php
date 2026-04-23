@@ -77,6 +77,9 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ], [
             'email.unique' => 'Email sudah terdaftar, silakan gunakan email lain.',
+            'username.unique' => 'Username sudah digunakan, silakan pilih username lain.',
+            'nisn.unique' => 'NISN sudah terdaftar, silakan cek kembali NISN Anda.',
+            'password.confirmed' => 'Konfirmasi password tidak sesuai.',
         ]);
 
         User::create([

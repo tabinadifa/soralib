@@ -7,7 +7,9 @@ use App\Models\Peminjaman;
 use App\Models\Buku;
 use App\Models\KategoriBuku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class PeminjamanController extends Controller
 {
@@ -91,12 +93,36 @@ class PeminjamanController extends Controller
                 ->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'buku_id'         => ['required', 'exists:buku,id'],
             'total_buku'      => ['required', 'integer', 'min:1'],
             'tanggal_pinjam'  => ['required', 'date', 'after_or_equal:today'],
             'tanggal_kembali' => ['required', 'date', 'after:tanggal_pinjam'],
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if (!$request->filled('tanggal_pinjam') || !$request->filled('tanggal_kembali')) {
+                return;
+            }
+
+            try {
+                $tanggalPinjam = Carbon::parse($request->input('tanggal_pinjam'))->startOfDay();
+                $tanggalKembali = Carbon::parse($request->input('tanggal_kembali'))->startOfDay();
+            } catch (\Exception $e) {
+                return;
+            }
+
+            $maksTanggalKembali = $tanggalPinjam->copy()->addDays(7);
+
+            if ($tanggalKembali->gt($maksTanggalKembali)) {
+                $validator->errors()->add(
+                    'tanggal_kembali',
+                    'Tanggal kembali maksimal 7 hari setelah tanggal pinjam (maksimal ' . $maksTanggalKembali->format('Y-m-d') . ').'
+                );
+            }
+        });
+
+        $validated = $validator->validate();
 
         $buku = Buku::find($validated['buku_id']);
 
