@@ -132,7 +132,7 @@
             <div class="chart-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="card-title-sm">📜 Riwayat Peminjaman</span>
-                    <a href="#" class="text-decoration-none small text-success">Lihat semua</a>
+                    <a href="{{ route('siswa.peminjaman.riwayat') }}" class="text-decoration-none small text-success">Lihat semua</a>
                 </div>
                 @forelse($riwayat as $riw)
                 <div class="loan-row">

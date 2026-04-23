@@ -36,6 +36,8 @@
 					<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill">{{ ucfirst($user->role) }}</span>
 					<hr class="my-3">
 					<div class="text-start small">
+						<div class="mb-2"><i class="bi bi-card-text me-2"></i> NISN: {{ $user->nisn ?? '-' }}</div>
+						<div class="mb-2"><i class="bi bi-mortarboard me-2"></i> Kelas: {{ $user->kelas ?? '-' }}</div>
 						<div class="mb-2"><i class="bi bi-envelope me-2"></i> {{ $user->email }}</div>
 						<div class="mb-2"><i class="bi bi-telephone me-2"></i> {{ $user->phone ?? '-' }}</div>
 						<div class="mb-2"><i class="bi bi-geo-alt me-2"></i> {{ $user->address ?? '-' }}</div>
@@ -96,6 +98,18 @@
 									<label class="form-label">Email</label>
 									<input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required>
 									@error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+								</div>
+
+								<div class="mb-3">
+									<label class="form-label">NISN</label>
+									<input type="text" name="nisn" class="form-control @error('nisn') is-invalid @enderror" value="{{ old('nisn', $user->nisn) }}" maxlength="20">
+									@error('nisn')<div class="invalid-feedback">{{ $message }}</div>@enderror
+								</div>
+
+								<div class="mb-3">
+									<label class="form-label">Kelas</label>
+									<input type="text" name="kelas" class="form-control @error('kelas') is-invalid @enderror" value="{{ old('kelas', $user->kelas) }}" maxlength="50">
+									@error('kelas')<div class="invalid-feedback">{{ $message }}</div>@enderror
 								</div>
 
 								<div class="mb-3">

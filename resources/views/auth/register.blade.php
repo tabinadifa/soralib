@@ -4,60 +4,63 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-md-7 col-lg-5">
+    <div class="col-lg-9 col-xl-8">
         <div class="card auth-card shadow-lg">
             <div class="card-body">
                 <h4 class="text-center mb-2 auth-title">Buat Akun Baru</h4>
+                <p class="text-center auth-description mb-4">Lengkapi data berikut untuk membuat akun.</p>
 
-                <form method="POST" action="{{ route('auth.register.process') }}">
+                <form method="POST" action="{{ route('auth.register.process') }}" class="register-form">
                     @csrf
 
-                    <div class="mb-3">
-                        <label class="form-label">Nama</label>
-                        <input type="text" name="name" class="form-control" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nama</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Pengguna</label>
+                            <input type="text" name="username" class="form-control" value="{{ old('username') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">NISN</label>
+                            <input type="text" name="nisn" class="form-control" value="{{ old('nisn') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Kelas</label>
+                            <input type="text" name="kelas" class="form-control" placeholder="Contoh: 12 PPLG 2" value="{{ old('kelas') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">No. Telepon</label>
+                            <input type="text" name="phone" class="form-control" maxlength="13" value="{{ old('phone') }}" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Alamat</label>
+                            <textarea name="address" class="form-control" rows="2" required>{{ old('address') }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Konfirmasi Password</label>
+                            <input type="password" name="password_confirmation" class="form-control" required>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Nama Pengguna</label>
-                        <input type="text" name="username" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">NISN</label>
-                        <input type="nuumber" name="nisn" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Kelas</label>
-                        <input type="text" name="kelas" class="form-control" placeholder="Contoh: 12 PPLG 2" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">No. Telepon</label>
-                        <input type="text" name="phone" class="form-control" maxlength="13" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Alamat</label>
-                        <textarea name="address" class="form-control" rows="2" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Konfirmasi Password</label>
-                        <input type="password" name="password_confirmation" class="form-control" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-auth-primary w-100">
+                    <button type="submit" class="btn btn-auth-primary w-100 mt-4">
                         Daftar
                     </button>
 
@@ -72,6 +75,20 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .register-form .form-label {
+        margin-bottom: 0.35rem;
+        font-size: 0.9rem;
+    }
+
+    .register-form .form-control {
+        padding-top: 0.58rem;
+        padding-bottom: 0.58rem;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

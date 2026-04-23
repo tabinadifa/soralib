@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'Kategori Alat - Lendify')
+@section('title', 'Kategori Buku - Soralib')
 
 @push('styles')
     <style>
@@ -14,7 +14,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
-        <h2 class="fw-bold mb-0">Kategori Alat</h2>
+        <h2 class="fw-bold mb-0">Kategori Buku</h2>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4">

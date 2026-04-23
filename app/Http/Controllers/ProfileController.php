@@ -53,6 +53,8 @@ class ProfileController extends Controller
 				'max:255',
 				Rule::unique('users', 'email')->ignore($user->id),
 			],
+			'nisn' => ['nullable', 'string', 'max:20'],
+			'kelas' => ['nullable', 'string', 'max:50'],
 			'phone' => ['nullable', 'string', 'max:13'],
 			'address' => ['nullable', 'string', 'max:1000'],
 			'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
