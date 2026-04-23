@@ -29,7 +29,6 @@
                 </div>
             @endif
 
-            <!-- Controls -->
             <form method="GET" class="row g-2 mb-3 align-items-center mt-2">
                 <div class="col-md-3">
                     <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
