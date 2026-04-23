@@ -67,7 +67,7 @@
                         @endif
                         <tr>
                             <th class="text-muted fw-normal">Total Buku</th>
-                            <td>{{ $peminjaman->total_buku }} eksemplar</td>
+                            <td>{{ $peminjaman->total_buku }}</td>
                         </tr>
                     </table>
                 </div>
@@ -247,7 +247,7 @@
                     <hr class="my-3">
                     <div class="d-flex justify-content-between small text-muted">
                         <span>Jumlah dipinjam</span>
-                        <strong class="text-dark">{{ $peminjaman->total_buku }} eksemplar</strong>
+                        <strong class="text-dark">{{ $peminjaman->total_buku }}</strong>
                     </div>
                 </div>
             </div>
