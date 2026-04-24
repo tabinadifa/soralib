@@ -3,12 +3,21 @@
     $role = auth()->user()->role ?? null;
 @endphp
 
+<button type="button" class="sidebar-toggle-btn d-lg-none" aria-label="Buka menu" aria-expanded="false"
+    onclick="toggleSidebar()">
+    <i class="bi bi-list"></i>
+</button>
+
 <div class="sidebar p-3">
     <div class="sidebar-brand d-flex align-items-center gap-2 mb-5 px-2">
         <div class="brand-logo d-flex align-items-center justify-content-center">
             <i class="bi bi-book-fill text-white"></i>
         </div>
         <h5 class="mb-0 fw-bold flex-grow-1 brand-name">SoraLib</h5>
+        <button type="button" class="btn btn-sm collapse-btn d-none d-lg-inline-flex" aria-label="Kecilkan sidebar"
+            onclick="toggleSidebarCollapse()">
+            <i class="bi bi-chevron-left"></i>
+        </button>
         <button type="button" class="btn btn-sm close-btn d-lg-none" aria-label="Tutup menu"
             onclick="toggleSidebar(false)">
             <i class="bi bi-x-lg"></i>
@@ -88,6 +97,34 @@
 </div>
 
 <style>
+    .sidebar-toggle-btn {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 10px;
+        background: #F3F4F6;
+        color: #374151;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        transition: background-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .sidebar-toggle-btn:hover {
+        background: #E5E7EB;
+    }
+
+    body.sidebar-open .sidebar-toggle-btn {
+        opacity: 0;
+        pointer-events: none;
+    }
+
     .sidebar {
         background: linear-gradient(180deg, #1E4D35 0%, #2D6F4E 100%);
         min-height: 100vh;
@@ -96,9 +133,61 @@
         border-right: none;
         position: relative;
         z-index: 999;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, width 0.25s ease, padding 0.25s ease;
         display: flex;
         flex-direction: column;
+    }
+
+    .collapse-btn {
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .collapse-btn:hover {
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+    }
+
+    body.sidebar-collapsed .sidebar {
+        width: 88px;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    body.sidebar-collapsed .brand-name,
+    body.sidebar-collapsed .section-label,
+    body.sidebar-collapsed .nav-link > span:last-child {
+        display: none;
+    }
+
+    body.sidebar-collapsed .sidebar-brand {
+        justify-content: center;
+        gap: 0 !important;
+    }
+
+    body.sidebar-collapsed .brand-logo {
+        margin-right: 0 !important;
+    }
+
+    body.sidebar-collapsed .collapse-btn {
+        position: absolute;
+        right: 8px;
+        transform: rotate(180deg);
+    }
+
+    body.sidebar-collapsed .nav-link {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        gap: 0;
     }
 
     .brand-logo {
@@ -218,6 +307,12 @@
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
         }
     }
+
+    @media (min-width: 992px) {
+        .sidebar-toggle-btn {
+            display: none;
+        }
+    }
 </style>
 
 @push('scripts')
@@ -225,6 +320,41 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             if (!sidebar) return;
+
+            const toggleButton = document.querySelector('.sidebar-toggle-btn');
+            const collapseButton = document.querySelector('.collapse-btn');
+            const collapseStorageKey = 'sidebar-collapsed';
+
+            const applyCollapsedState = (collapsed) => {
+                document.body.classList.toggle('sidebar-collapsed', collapsed);
+                if (!collapseButton) return;
+
+                collapseButton.setAttribute('aria-expanded', String(!collapsed));
+                collapseButton.setAttribute('aria-label', collapsed ? 'Lebarkan sidebar' : 'Kecilkan sidebar');
+            };
+
+            window.toggleSidebarCollapse = function(forceState = null) {
+                if (window.innerWidth < 992) return;
+
+                const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                const shouldCollapse = forceState ?? !isCollapsed;
+                applyCollapsedState(shouldCollapse);
+                localStorage.setItem(collapseStorageKey, shouldCollapse ? '1' : '0');
+            };
+
+            const syncToggleState = () => {
+                if (!toggleButton) return;
+                const isOpen = document.body.classList.contains('sidebar-open');
+                toggleButton.setAttribute('aria-expanded', String(isOpen));
+            };
+
+            syncToggleState();
+
+            const savedCollapsedState = localStorage.getItem(collapseStorageKey) === '1';
+            if (window.innerWidth >= 992) {
+                applyCollapsedState(savedCollapsedState);
+            }
+
             const navLinks = sidebar.querySelectorAll('[data-nav-link]');
             navLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
@@ -240,7 +370,25 @@
                     if (this.getAttribute('href') === '#') {
                         e.preventDefault();
                     }
+
+                    syncToggleState();
                 });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[onclick*="toggleSidebar"]')) {
+                    requestAnimationFrame(syncToggleState);
+                }
+            });
+
+            window.addEventListener('resize', syncToggleState);
+            window.addEventListener('resize', () => {
+                const savedState = localStorage.getItem(collapseStorageKey) === '1';
+                if (window.innerWidth >= 992) {
+                    applyCollapsedState(savedState);
+                } else {
+                    applyCollapsedState(false);
+                }
             });
         });
     </script>

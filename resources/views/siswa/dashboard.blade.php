@@ -108,27 +108,8 @@
             </div>
         </div>
 
-        <!-- Grafik Peminjaman per Bulan -->
-        <div class="col-12">
-            <div class="chart-card">
-                <span class="card-title-sm">📊 Tren Peminjaman (6 bulan terakhir)</span>
-                <div class="bar-chart">
-                    @foreach($chartMonthly as $monthData)
-                    <div class="bar-item">
-                        <div class="bar-value">{{ $monthData['val'] }}</div>
-                        <div class="bar" style="height: {{ $monthData['val'] > 0 ? ($monthData['val'] / max(collect($chartMonthly)->max('val'), 1) * 100) : 4 }}%; min-height: 8px;"></div>
-                        <div class="bar-label">{{ $monthData['month'] }}</div>
-                    </div>
-                    @endforeach
-                </div>
-                @if(collect($chartMonthly)->sum('val') == 0)
-                <div class="text-center text-muted py-3 mt-2">Belum ada aktivitas peminjaman dalam 6 bulan terakhir.</div>
-                @endif
-            </div>
-        </div>
-
         <!-- Riwayat Peminjaman -->
-        <div class="col-12">
+        <div class="col-md-6">
             <div class="chart-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="card-title-sm">📜 Riwayat Peminjaman</span>
@@ -156,6 +137,25 @@
                 @empty
                 <div class="text-center text-muted py-4">Belum ada riwayat peminjaman.</div>
                 @endforelse
+            </div>
+        </div>
+
+        <!-- Grafik Peminjaman per Bulan -->
+        <div class="col-12">
+            <div class="chart-card">
+                <span class="card-title-sm">📊 Tren Peminjaman (6 bulan terakhir)</span>
+                <div class="bar-chart">
+                    @foreach($chartMonthly as $monthData)
+                    <div class="bar-item">
+                        <div class="bar-value">{{ $monthData['val'] }}</div>
+                        <div class="bar" style="height: {{ $monthData['val'] > 0 ? ($monthData['val'] / max(collect($chartMonthly)->max('val'), 1) * 100) : 4 }}%; min-height: 8px;"></div>
+                        <div class="bar-label">{{ $monthData['month'] }}</div>
+                    </div>
+                    @endforeach
+                </div>
+                @if(collect($chartMonthly)->sum('val') == 0)
+                <div class="text-center text-muted py-3 mt-2">Belum ada aktivitas peminjaman dalam 6 bulan terakhir.</div>
+                @endif
             </div>
         </div>
     </div>
